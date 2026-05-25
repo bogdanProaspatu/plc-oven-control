@@ -1,88 +1,84 @@
-# 🏭 Automatizarea și Controlul Distribuit al unui Cuptor Industrial (PLC Siemens LOGO!)
+# 🏭 Distributed Automation and Control of an Industrial Furnace (Siemens LOGO! PLC)
 
-Acest proiect reprezintă o soluție completă de inginerie pentru automatizarea proceselor termice industriale. Sistemul utilizează o arhitectură de **control distribuit** bazată pe două automate programabile (PLC) **Siemens LOGO! 8**, optimizând procesul de încălzire prin separarea logicii de execuție de cea de monitorizare și siguranță.
-
----
-
-## 🎯 1. Scopul și Obiectivele Proiectului
-Proiectul a fost conceput pentru a răspunde cerințelor riguroase din mediul industrial (metalurgie, ceramică sau tratamente termice):
-* **Precizie Termică:** Controlul temperaturii într-un domeniu strict definit pentru a asigura calitatea produselor.
-* **Redundanță și Siguranță:** Implementarea unor protocoale de avarie care să prevină distrugerea echipamentelor în caz de erori hardware.
-* **Arhitectură Modulară:** Utilizarea a două PLC-uri interconectate pentru a reduce sarcina de procesare și a permite depanarea independentă.
-* **Interfață Operator (HMI):** Sistem de semnalizare vizuală și sonoră pentru stările de funcționare, eroare și necesar de mentenanță.
+This project is a complete engineering solution for automating industrial thermal processes. The system uses a **distributed control** architecture based on two **Siemens LOGO! 8** programmable logic controllers (PLCs), optimizing the heating process by separating execution logic from monitoring and safety logic.
 
 ---
 
-## ⚙️ 2. Arhitectura Sistemului și Hardware
-Sistemul este împărțit în două unități de procesare distincte, interconectate galvanic prin semnale de stare ($Q \rightarrow I$).
-
-### 2.1. PLC 1 - Controlul Procesului Termic (Logică FBD)
-Este unitatea „de forță” care interacționează direct cu senzorii analogici.
-* **Intrări:** 1x Senzor de temperatură analogic (AI1 - PT100/TC).
-* **Ieșiri:** 1x Comandă rezistențe de încălzire (Q1).
-* **Limbaj:** **FBD (Function Block Diagram)** - optim pentru procesarea semnalelor analogice.
-* **Fișier:** `Subproces_1.lsc`
-
-### 2.2. PLC 2 - Monitorizare și Securitate (Logică LAD)
-Gestionează partea electrică, interblocările și protecția operatorului.
-* **Intrări:** Start/Stop, Reset, Senzor supraîncălzire, Semnal stare PLC1.
-* **Ieșiri:** Alarmă sonoră, Indicator Mentenanță, Sistem Răcire progresivă.
-* **Limbaj:** **LAD (Ladder Diagram)** - standardul industrial pentru logica de relee.
-* **Fișier:** `Subproces2LADFinal.lld`
+## 🎯 1. Project Goal and Objectives
+The project was designed to meet the rigorous requirements of industrial environments (metallurgy, ceramics, or heat treatment):
+* **Thermal Precision:** Controlling temperature within a strictly defined range to ensure product quality.
+* **Redundancy and Safety:** Implementing fault protocols that prevent equipment damage in case of hardware errors.
+* **Modular Architecture:** Using two interconnected PLCs to reduce processing load and allow independent debugging.
+* **Operator Interface (HMI):** A visual and audible signaling system for operating, error, and maintenance-required states.
 
 ---
 
-## 🧠 3. Logica de Funcționare Detaliată
+## ⚙️ 2. System Architecture and Hardware
+The system is split into two distinct processing units, galvanically interconnected through status signals ($Q \rightarrow I$).
 
+### 2.1. PLC 1 - Thermal Process Control (FBD Logic)
+This is the "power" unit that interacts directly with the analog sensors.
+* **Inputs:** 1x analog temperature sensor (AI1 - PT100/TC).
+* **Outputs:** 1x heating-element command (Q1).
+* **Language:** **FBD (Function Block Diagram)** - optimal for analog signal processing.
+* **File:** `Subproces_1.lsc`
 
-
-### 3.1. Algoritmul de Control Termic
-S-a implementat o logică de tip **Histerezis** (ON/OFF cu praguri) pentru a evita uzura prematură a contactoarelor:
-* **Prag Minim:** Activarea rezistențelor la scăderea temperaturii sub limita setată.
-* **Prag Maxim:** Decuplarea încălzirii la atingerea temperaturii de proces.
-
-### 3.2. Răcirea Progresivă în Trepte
-Pentru a proteja integritatea materialelor prelucrate, sistemul nu oprește brusc răcirea, ci utilizează un protocol în trei trepte gestionat prin temporizatoare:
-1. **Treapta 1:** Ventilare maximă imediat după finalizarea ciclului.
-2. **Treapta 2:** Reducerea intensității pentru stabilizarea temperaturii.
-3. **Treapta 3:** Răcire lentă până la pragul de siguranță pentru descărcare.
-
----
-
-## ⚠️ 4. Protocoale de Siguranță și Alarmare
-Siguranța este pilonul central al acestui proiect, fiind implementate 4 filtre de eroare:
-
-1. **Watchdog de Încălzire:** Dacă ieșirea de încălzire este activă, dar AI1 nu raportează o creștere de temperatură în 30 de secunde, sistemul declară "Rezistență Defectă".
-2. **Filtru de Zgomot (Debouncing):** Alarma de supraîncălzire se activează doar dacă senzorul raportează eroarea pentru mai mult de 5 secunde continuu.
-3. **Contor de Cicluri (Mentenanță):** La fiecare 5 cicluri, PLC2 blochează pornirea și aprinde un indicator de service.
-4. **Interblocare (Safety Interlock):** Orice eroare critică necesită un **Reset Manual (I16)**; repornirea automată este interzisă pentru a forța verificarea de către operator.
+### 2.2. PLC 2 - Monitoring and Safety (LAD Logic)
+Handles the electrical side, interlocks, and operator protection.
+* **Inputs:** Start/Stop, Reset, overheating sensor, PLC1 status signal.
+* **Outputs:** Audible alarm, Maintenance indicator, Progressive cooling system.
+* **Language:** **LAD (Ladder Diagram)** - the industrial standard for relay logic.
+* **File:** `Subproces2LADFinal.lld`
 
 ---
 
-## 📊 5. Implementarea în LOGO! Soft Comfort
-Proiectul include diagramele complete dezvoltate în versiunea 8.3:
-* **FBD:** Utilizarea blocurilor de comparare analogică și a amplificatoarelor de semnal.
-* **LAD:** Implementarea circuitelor de automenținere și a temporizatoarelor de tip *Off-Delay* și *On-Delay*.
-* **P&ID:** Reprezentarea simbolică a fluxului de proces (Piping and Instrumentation Diagram).
+## 🧠 3. Detailed Operating Logic
 
+### 3.1. Thermal Control Algorithm
+A **hysteresis** logic (ON/OFF with thresholds) was implemented to avoid premature wear of the contactors:
+* **Minimum Threshold:** Activating the heating elements when the temperature drops below the set limit.
+* **Maximum Threshold:** Disconnecting the heating when the process temperature is reached.
 
-
----
-
-## 🛠️ 6. Ghid de Instalare și Rulare
-1. **Software:** Instalați **LOGO! Soft Comfort V8.3** sau mai nou.
-2. **Configurare:** Încărcați `Subproces_1.lsc` pe primul PLC și `Subproces2LADFinal.lld` pe al doilea.
-3. **Hardware:** Realizați conexiunile fizice între Q-ul primului PLC și I-ul celui de-al doilea (conform schemei de comunicație din PDF).
-4. **Simulare:** Puteți utiliza modul de simulare (F3) pentru a varia intrarea analogică AI1 și a observa declanșarea secvențelor.
+### 3.2. Progressive Stepped Cooling
+To protect the integrity of the processed materials, the system does not stop cooling abruptly but uses a three-step protocol managed by timers:
+1. **Step 1:** Maximum ventilation immediately after the cycle finishes.
+2. **Step 2:** Reducing intensity to stabilize the temperature.
+3. **Step 3:** Slow cooling down to the safe threshold for unloading.
 
 ---
 
-## 👨‍💻 Realizat de
+## ⚠️ 4. Safety and Alarm Protocols
+Safety is the central pillar of this project, with 4 error filters implemented:
+
+1. **Heating Watchdog:** If the heating output is active but AI1 does not report a temperature increase within 30 seconds, the system declares a "Faulty Heating Element".
+2. **Noise Filter (Debouncing):** The overheating alarm is triggered only if the sensor reports the error continuously for more than 5 seconds.
+3. **Cycle Counter (Maintenance):** Every 5 cycles, PLC2 blocks startup and turns on a service indicator.
+4. **Safety Interlock:** Any critical error requires a **Manual Reset (I16)**; automatic restart is prohibited to force operator inspection.
+
+---
+
+## 📊 5. Implementation in LOGO! Soft Comfort
+The project includes the complete diagrams developed in version 8.3:
+* **FBD:** Use of analog comparison blocks and signal amplifiers.
+* **LAD:** Implementation of self-holding circuits and *Off-Delay* and *On-Delay* timers.
+* **P&ID:** Symbolic representation of the process flow (Piping and Instrumentation Diagram).
+
+---
+
+## 🛠️ 6. Installation and Running Guide
+1. **Software:** Install **LOGO! Soft Comfort V8.3** or newer.
+2. **Configuration:** Load `Subproces_1.lsc` onto the first PLC and `Subproces2LADFinal.lld` onto the second.
+3. **Hardware:** Make the physical connections between the Q output of the first PLC and the I input of the second (per the communication diagram in the PDF).
+4. **Simulation:** Use the simulation mode (F3) to vary the AI1 analog input and observe the sequences being triggered.
+
+---
+
+## 👨‍💻 Author
 **Nicolae-Bogdan Proaspătu**
-*Student la Automatică și Informatică Aplicată, Universitatea Tehnică de Construcții București*
-An universitar 2025–2026
+*Automation and Applied Informatics student, Technical University of Civil Engineering Bucharest*
+Academic year 2025–2026
 
 ---
 
-## ⚖️ Licență
-Acest proiect este dezvoltat exclusiv în scop educațional pentru disciplina **Aplicații cu Automate Programabile**.
+## ⚖️ License
+Developed exclusively for educational purposes as part of the **Programmable Logic Controllers (PLC) Applications** course.
